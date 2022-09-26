@@ -7,7 +7,7 @@ module:
 name: 03-eks
 overrides: {}
 refInfra:
-  name: eks-dev-ameya-v1
+  name: eks-dev-ameya-project-3647
 vars:
   add_namespaces:
   - enable_istio: false
@@ -40,7 +40,7 @@ vars:
   cluster_endpoint_private_access: true
   cluster_endpoint_private_access_sg: []
   cluster_endpoint_public_access: true
-  cluster_name: eks-dev-ameya-v1
+  cluster_name: eks-dev-ameya-project-3647
   cluster_security_group_additional_rules:
     release_management_access:
       cidr_blocks:
@@ -59,8 +59,11 @@ vars:
   existing_system_namespaces:
   - kube-system
   - default
-  existing_vpc_id: $xlr8s.outputs.01-vpc-for-eks.vpc_id
-  existing_vpc_subnets: $xlr8s.outputs.01-vpc-for-eks.private_subnets
+  existing_vpc_id: vpc-0088098b6a872b701
+  existing_vpc_subnets:
+  - subnet-00c77d5e9e109cb79
+  - subnet-010985de8a5a06f1e
+  - subnet-0313d62c46fed9f71
   extra_tags:
     Environment: Dev
     ManagedBy: Terraform
