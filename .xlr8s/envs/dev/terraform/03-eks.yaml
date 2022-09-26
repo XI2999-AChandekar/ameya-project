@@ -7,7 +7,7 @@ module:
 name: 03-eks
 overrides: {}
 refInfra:
-  name: eks-dev-ameya-v4
+  name: eks-dev-ameya-6
 vars:
   add_namespaces:
   - enable_istio: false
@@ -40,7 +40,7 @@ vars:
   cluster_endpoint_private_access: true
   cluster_endpoint_private_access_sg: []
   cluster_endpoint_public_access: true
-  cluster_name: eks-dev-ameya-v4
+  cluster_name: eks-dev-ameya-6
   cluster_security_group_additional_rules:
     ingress_self_all:
       description: Node to node all ports/protocols
@@ -70,6 +70,7 @@ vars:
   existing_vpc_subnets:
   - subnet-00c77d5e9e109cb79
   - subnet-010985de8a5a06f1e
+  - subnet-0313d62c46fed9f71
   extra_tags:
     Environment: Dev
     ManagedBy: Terraform
