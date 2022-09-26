@@ -44,6 +44,9 @@ modules:
   - module: git@github.com:xebiaww-apps/terraform-aws-xebia-eks.git
     ref:
       tag: v1.4.0
+  - module: git@github.com:xebiaww-apps/terraform-aws-xebia-eks.git
+    ref:
+      tag: v1.4.2
 name: ameya-project-3647
 vars:
   apps: null

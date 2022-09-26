@@ -8,7 +8,7 @@ provider tls {
 }
 
 module "eks" {
-  source = "../../../../../_terraform_modules/xebia/terraform-aws-xebia-eks@v1.4.0"
+  source = "../../../../../_terraform_modules/xebia/terraform-aws-xebia-eks@v1.4.2"
 	
   add_namespaces = var.add_namespaces
   assume_role_arn = var.assume_role_arn
