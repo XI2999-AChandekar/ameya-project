@@ -7,7 +7,7 @@ module:
 name: 03-eks
 overrides: {}
 refInfra:
-  name: eks-dev-ameya-v3
+  name: eks-dev-ameya-v4
 vars:
   add_namespaces:
   - enable_istio: false
@@ -40,8 +40,15 @@ vars:
   cluster_endpoint_private_access: true
   cluster_endpoint_private_access_sg: []
   cluster_endpoint_public_access: true
-  cluster_name: eks-dev-ameya-v3
+  cluster_name: eks-dev-ameya-v4
   cluster_security_group_additional_rules:
+    ingress_self_all:
+      description: Node to node all ports/protocols
+      from_port: 0
+      protocol: "-1"
+      self: true
+      to_port: 0
+      type: ingress
     release_management_access:
       cidr_blocks:
       - 0.0.0.0/0
@@ -59,9 +66,10 @@ vars:
   existing_system_namespaces:
   - kube-system
   - default
-  existing_vpc_id: vpc-0115d571d62edf220
+  existing_vpc_id: vpc-0088098b6a872b701
   existing_vpc_subnets:
-  - subnet-04ff240f9d86e8e6f
+  - subnet-00c77d5e9e109cb79
+  - subnet-010985de8a5a06f1e
   extra_tags:
     Environment: Dev
     ManagedBy: Terraform
@@ -69,14 +77,29 @@ vars:
   map_aws_users: []
   map_k8s_roles: []
   node_groups:
-  - capacity_type: ON_DEMAND
+  - capacity_type: SPOT
     instance_types:
     - t3a.large
+    - t3a.xlarge
     labels:
-      type: memory-intensive
+      type: worker
     max_capacity: 9
     min_capacity: 3
     name: worker-1
+    taints: {}
+  - capacity_type: ON_DEMAND
+    instance_types:
+    - t3a.xlarge
+    labels:
+      type: runner
+    max_capacity: 9
+    min_capacity: 3
+    name: runner
+    taints:
+      dedicated:
+        effect: NO_SCHEDULE
+        key: dedicated
+        value: runner
   node_groups_defaults:
     ami_type: AL2_x86_64
     create_launch_template: true
@@ -105,12 +128,15 @@ vars:
         to_port: 0
         type: ingress
   node_security_group_additional_rules:
-    fluent_bit_outbound_access:
+    egress_all:
       cidr_blocks:
       - 0.0.0.0/0
-      description: Allow access to outbound 443
-      from_port: "443"
-      to_port: "443"
+      description: Node all egress
+      from_port: 0
+      ipv6_cidr_blocks:
+      - ::/0
+      protocol: "-1"
+      to_port: 0
       type: egress
     ingress_allow_access_from_control_plane:
       description: Allow access from control plane to webhook port of AWS load balancer
