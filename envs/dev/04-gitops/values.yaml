@@ -33,3 +33,12 @@ tools:
 - chart: helm-xebia-fluent-bit@v0.4.3
   name: 10-fluent-bit
   vendor: xebia
+- chart: helm-xebia-aws-ebs-csi-driver@v0.2.0
+  name: 05-ebs-csi-driver
+  vendor: xebia
+- chart: helm-xebia-pgadmin@v0.1.0
+  name: 11-pg-admin
+  vendor: xebia
+- chart: helm-xebia-prometheus-monitoring-stack@v0.3.1
+  name: 12-kube-monitoring-stack
+  vendor: xebia

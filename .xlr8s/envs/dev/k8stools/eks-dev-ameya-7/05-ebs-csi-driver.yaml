@@ -1,0 +1,68 @@
+apiVersion: v0.1.0
+assets: null
+module:
+  module: git@github.com:xebiaww-apps/helm-xebia-aws-ebs-csi-driver.git
+  ref:
+    tag: v0.2.0
+name: 05-ebs-csi-driver
+overrides: {}
+refInfra:
+  name: eks-dev-ameya-7
+vars:
+  aws-ebs-csi-driver:
+    controller:
+      env:
+      - name: AWS_STS_REGIONAL_ENDPOINTS
+        value: legacy
+      region: ap-south-1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      serviceAccount:
+        annotations: {}
+        create: false
+        name: ebs-csi-controller-sa
+    node:
+      serviceAccount:
+        annotations: {}
+        create: false
+        name: ebs-csi-node-sa
+    storageClasses:
+    - allowVolumeExpansion: true
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+      name: ebs-sc
+      parameters:
+        encrypted: "true"
+      volumeBindingMode: WaitForFirstConsumer
+    - allowVolumeExpansion: true
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1a
+      name: ebs-sc-1a
+      parameters:
+        encrypted: "true"
+      volumeBindingMode: WaitForFirstConsumer
+    - allowVolumeExpansion: true
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1b
+      name: ebs-sc-1b
+      parameters:
+        encrypted: "true"
+      volumeBindingMode: WaitForFirstConsumer
+    - allowVolumeExpansion: true
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1c
+      name: ebs-sc-1c
+      parameters:
+        encrypted: "true"
+      volumeBindingMode: WaitForFirstConsumer

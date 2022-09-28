@@ -1,0 +1,104 @@
+VolumePermissions:
+  enabled: false
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: type
+          operator: In
+          values:
+          - runner
+annotations: {}
+autoscaling:
+  enabled: false
+  maxReplicas: 100
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 80
+containerPorts:
+  http: 80
+env:
+  email: chart@example.local
+  enhanced_cookie_protection: "False"
+  password: SuperSecret
+  variables: []
+existingSecret: ""
+extraConfigmapMounts: []
+extraContainers: null
+extraInitContainers: null
+extraSecretMounts: []
+fullnameOverride: pgadmin
+image:
+  pullPolicy: IfNotPresent
+  registry: docker.io
+  repository: dpage/pgadmin4
+  tag: "5.5"
+ingress:
+  annotations: {}
+  enabled: false
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: Prefix
+  tls: []
+init:
+  resources: {}
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  successThreshold: 1
+  timeoutSeconds: 15
+networkPolicy:
+  enabled: true
+nodeSelector: {}
+persistentVolume:
+  accessModes:
+  - ReadWriteOnce
+  annotations: {}
+  enabled: true
+  size: 10Gi
+podAnnotations: {}
+podLabels: {}
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  successThreshold: 1
+  timeoutSeconds: 15
+replicaCount: 1
+resources: {}
+securityContext:
+  fsGroup: 5050
+  runAsGroup: 5050
+  runAsUser: 5050
+serverDefinitions:
+  enabled: false
+  servers: ""
+service:
+  annotations: {}
+  port: 80
+  portName: http
+  targetPort: http
+  type: NodePort
+serviceAccount:
+  annotations: {}
+  create: false
+  name: ""
+strategy: {}
+test:
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: latest
+  resources: {}
+  securityContext:
+    fsGroup: 5051
+    runAsGroup: 5051
+    runAsUser: 5051
+tolerations:
+- effect: NoSchedule
+  key: dedicated
+  operator: Equal
+  value: devopsStack

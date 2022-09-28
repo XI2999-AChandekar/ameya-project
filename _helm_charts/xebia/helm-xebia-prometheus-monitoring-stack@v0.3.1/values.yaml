@@ -1,0 +1,165 @@
+namespace: ""
+
+# EKS specific (controlplane is not accessable)
+dashboards:
+  kong:
+    enabled: false
+  istio:
+    enabled: false
+  springboot:
+    enabled: false
+  goldenSignalMetrics:
+    enabled: true
+
+kube-prometheus-stack:
+  kubeControllerManager:
+    enabled: true
+  kubeScheduler:
+    enabled: true
+  kubeProxy:
+    enabled: true
+
+  fullnameOverride: "kube-prometheus-stack"
+
+  kube-state-metrics:
+    fullnameOverride: "kube-state-metrics"
+  
+  prometheus-node-exporter:
+    fullnameOverride: "prometheus-node-exporter"
+
+  grafana:
+    fullnameOverride: "grafana"
+
+    service:
+      type: NodePort
+
+    grafana.ini:
+      server:
+          # The full public facing url you use in browser, used for redirects and emails
+        root_url: "%(protocol)s://%(domain)s/grafana"
+        serve_from_sub_path: true
+    
+    defaultDashboardsEnabled: false
+    # grafana image
+    image:
+      repository: grafana/grafana
+      tag: 8.4.6
+    # enable the dashboardProviders and dashboardsConfigMaps if dashboards are enabled.
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+        - name: 'ext-dashboards'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/ext-dashboards
+
+    dashboardsConfigMaps:
+      ext-dashboards: "ext-dashboards-cm"
+
+    persistence:
+      type: pvc
+      enabled: false
+      #storageClassName: default
+      #accessModes:
+      #   - ReadWriteOnce
+      #size: 10Gi
+    ingress:
+      enabled: true
+
+      hosts: 
+      # - grafana.mb2dev.xyz.com
+
+      path: /grafana
+      
+      # add annotation for graphana
+      annotations: 
+        "kubernetes.io/ingress.class": "alb"
+        "alb.ingress.kubernetes.io/group.name": "internal-tools"
+        "alb.ingress.kubernetes.io/scheme": "internet-facing"
+        "alb.ingress.kubernetes.io/healthcheck-port": "http-web"
+        "alb.ingress.kubernetes.io/healthcheck-protocol": "HTTP"
+        "alb.ingress.kubernetes.io/healthcheck-path": "/api/health"
+        "alb.ingress.kubernetes.io/subnets": "subnet-09a2db7fdac92e25c,subnet-0afccdde86ef8e672,subnet-0b0f62f5c9a6697d4"
+        "alb.ingress.kubernetes.io/tags": "Project Name=Xebia,Environment=dev,Team=test"
+    # Uncomment to use a secret for authentication
+    # admin:
+    #   existingSecret: "grafana-auth"
+    sidecar:
+      # grafana sidecar image
+      image:
+        repository: quay.io/kiwigrid/k8s-sidecar
+        tag: 1.15.6
+      dashboards:
+        searchNamespace: ALL
+    testFramework:
+      enabled: false
+      image: "bats/bats"
+  
+  prometheus:
+    prometheus-node-exporter:
+      image:
+        repository: quay.io/prometheus/node-exporter
+        tag: "v1.3.1"
+    kube-state-metrics:
+      image:
+        repository: k8s.gcr.io/kube-state-metrics/kube-state-metrics
+        tag: v2.4.1
+    
+    # promethues operator image
+    prometheusOperator:
+      image:
+        repository: quay.io/prometheus-operator/prometheus-operator
+        tag: v0.56.0
+      admissionWebhooks:
+        patch:
+          image:
+            repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+            tag: v1.1.1       
+
+    # prometheus alermanager image 
+    alertmanager:
+      alertmanagerSpec:
+        image:
+          repository: quay.io/prometheus/alertmanager
+          tag: v0.24.0                  
+
+    ingress:
+      enabled: false
+      hosts: 
+      - prometheus.mb2dev.abc.com
+    prometheusSpec:
+      image:
+        repository: quay.io/prometheus/prometheus
+        tag: v2.35.0 
+      storageSpec: {}
+      #  volumeClaimTemplate:
+      #    spec:
+      #      storageClassName: gluster
+      #      accessModes: ["ReadWriteOnce"]
+      #      resources:
+      #        requests:
+      #          storage: 10Gi
+      additionalScrapeConfigs:
+        - job_name: 'istiod'
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istiod;http-monitoring
+        - job_name: 'envoy-stats'
+          metrics_path: /stats/prometheus
+          kubernetes_sd_configs:
+          - role: pod
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_container_port_name]
+            action: keep
+            regex: '.*-envoy-prom'
