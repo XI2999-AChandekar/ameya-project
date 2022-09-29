@@ -1,0 +1,150 @@
+apiVersion: v0.1.0
+assets: null
+module:
+  module: git@github.com:xebiaww-apps/helm-xebia-prometheus-monitoring-stack.git
+  ref:
+    tag: v0.3.1
+name: 12-kube-monitoring-stack
+overrides: {}
+refInfra:
+  name: eks-dev-ameya-scroll-test-1
+vars:
+  dashboards:
+    goldenSignalMetrics:
+      enabled: true
+    istio:
+      enabled: false
+    kong:
+      enabled: false
+    springboot:
+      enabled: false
+  kube-prometheus-stack:
+    fullnameOverride: kube-prometheus-stack
+    grafana:
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+          - disableDeletion: false
+            editable: true
+            folder: ""
+            name: ext-dashboards
+            options:
+              path: /var/lib/grafana/dashboards/ext-dashboards
+            orgId: 1
+            type: file
+      dashboardsConfigMaps:
+        ext-dashboards: ext-dashboards-cm
+      defaultDashboardsEnabled: false
+      fullnameOverride: grafana
+      grafana.ini:
+        server:
+          root_url: '%(protocol)s://%(domain)s/grafana'
+          serve_from_sub_path: true
+      image:
+        repository: grafana/grafana
+        tag: 8.4.6
+      ingress:
+        annotations:
+          alb.ingress.kubernetes.io/group.name: internal-tools
+          alb.ingress.kubernetes.io/healthcheck-path: /api/health
+          alb.ingress.kubernetes.io/healthcheck-port: http-web
+          alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+          alb.ingress.kubernetes.io/scheme: internet-facing
+          alb.ingress.kubernetes.io/subnets: subnet-09a2db7fdac92e25c,subnet-0afccdde86ef8e672,subnet-0b0f62f5c9a6697d4
+          alb.ingress.kubernetes.io/tags: Project Name=Xebia,Environment=dev,Team=test
+          kubernetes.io/ingress.class: alb
+        enabled: true
+        hosts: null
+        path: /grafana
+      persistence:
+        accessModes:
+        - ReadWriteOnce
+        enabled: true
+        size: 2Gi
+        storageClassName: ebs-sc
+        type: pvc
+      service:
+        type: NodePort
+      sidecar:
+        dashboards:
+          searchNamespace: ALL
+        image:
+          repository: quay.io/kiwigrid/k8s-sidecar
+          tag: 1.15.6
+      testFramework:
+        enabled: false
+        image: bats/bats
+    kube-state-metrics:
+      fullnameOverride: kube-state-metrics
+    kubeControllerManager:
+      enabled: true
+    kubeProxy:
+      enabled: true
+    kubeScheduler:
+      enabled: true
+    prometheus:
+      alertmanager:
+        alertmanagerSpec:
+          image:
+            repository: quay.io/prometheus/alertmanager
+            tag: v0.24.0
+      ingress:
+        enabled: false
+        hosts:
+        - prometheus.mb2dev.abc.com
+      kube-state-metrics:
+        image:
+          repository: k8s.gcr.io/kube-state-metrics/kube-state-metrics
+          tag: v2.4.1
+      prometheus-node-exporter:
+        image:
+          repository: quay.io/prometheus/node-exporter
+          tag: v1.3.1
+      prometheusOperator:
+        admissionWebhooks:
+          patch:
+            image:
+              repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+              tag: v1.1.1
+        image:
+          repository: quay.io/prometheus-operator/prometheus-operator
+          tag: v0.56.0
+      prometheusSpec:
+        additionalScrapeConfigs:
+        - job_name: istiod
+          kubernetes_sd_configs:
+          - namespaces:
+              names:
+              - istio-system
+            role: endpoints
+          relabel_configs:
+          - action: keep
+            regex: istiod;http-monitoring
+            source_labels:
+            - __meta_kubernetes_service_name
+            - __meta_kubernetes_endpoint_port_name
+        - job_name: envoy-stats
+          kubernetes_sd_configs:
+          - role: pod
+          metrics_path: /stats/prometheus
+          relabel_configs:
+          - action: keep
+            regex: .*-envoy-prom
+            source_labels:
+            - __meta_kubernetes_pod_container_port_name
+        image:
+          repository: quay.io/prometheus/prometheus
+          tag: v2.35.0
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+              - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 2Gi
+              storageClassName: ebs-sc
+    prometheus-node-exporter:
+      fullnameOverride: prometheus-node-exporter
+  namespace: ""
